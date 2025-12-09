@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur Date & Heure en Lettres</title>
+    <style>
+        /* Styles CSS pour la mise en page */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        #logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 15px;
+            /* REMPLACEZ cette ligne par l'URL ou le chemin de votre logo */
+            content: url('MonLogo.png');
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8em;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #resultBox {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            text-align: left;
+            word-wrap: break-word;
+        }
+
+        #resultText {
+            font-size: 1.1em;
+            color: #2c3e50;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div id="logo"></div>
+        <h1>Convertisseur Date & Heure en Lettres (Style Brut)</h1>
+    </header>
+
+    <form id="conversionForm">
+        <label for="dateInput">Entrez la Date (format JJ/MM/AAAA) :</label>
+        <input type="text" id="dateInput" placeholder="Ex: 13/12/2000" required pattern="\d{2}/\d{2}/\d{4}">
+
+        <label for="timeInput">Entrez l'Heure (format HHhMM) :</label>
+        <input type="text" id="timeInput" placeholder="Ex: 15h30 ou 08h05" required pattern="\d{2}h\d{2}">
+
+        <button type="submit">Convertir en Lettres</button>
+    </form>
+
+    <div id="resultBox">
+        <p><strong>Résultat :</strong></p>
+        <p id="resultText">La date et l'heure converties apparaîtront ici.</p>
+        <button id="copyButton" style="display: none;">Copier le Résultat</button>
+    </div>
+</div>
+
+<script>
+    // --- Outils de Conversion ---
+
+    const nombres = {
+        0: 'zéro', 1: 'un', 2: 'deux', 3: 'trois', 4: 'quatre', 5: 'cinq',
+        6: 'six', 7: 'sept', 8: 'huit', 9: 'neuf', 10: 'dix', 11: 'onze',
+        12: 'douze', 13: 'treize', 14: 'quatorze', 15: 'quinze', 16: 'seize',
+        20: 'vingt', 30: 'trente', 40: 'quarante', 50: 'cinquante', 60: 'soixante'
+    };
+
+    const mois = [
+        'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+    ];
+
+    // Fonction pour convertir les nombres de 0 à 99 en lettres (utilisée pour jour, heures, minutes)
+    function nombreEnLettres(n) {
+        if (n in nombres) return nombres[n];
+        
+        // Nombres < 20
+        if (n > 16 && n < 20) {
+            return nombres[10] + '-' + nombres[n - 10]; // Ex: dix-sept
+        }
+
+        const dizaine = Math.floor(n / 10) * 10;
+        const unite = n % 10;
+        
+        let resultat = '';
+
+        if (dizaine === 60 || dizaine === 70) {
+            // 60-79 (soixante, soixante-dix)
+            const reste = n - 60;
+            if (reste === 0) return nombres[60];
+            if (reste === 1) return 'soixante et un';
+            if (reste <= 16) return nombres[60] + '-' + nombres[reste];
+            // 77, 78, 79
+            if (reste <= 19) return nombres[60] + '-' + (reste === 17 ? 'dix-sept' : reste === 18 ? 'dix-huit' : 'dix-neuf');
+        } else if (dizaine === 80 || dizaine === 90) {
+            // 80-99 (quatre-vingts, quatre-vingt-dix)
+            if (n === 80) return 'quatre-vingts';
+            const reste = n - 80;
+            if (reste === 1) return 'quatre-vingt-un';
+            if (reste <= 16) return 'quatre-vingt-' + nombres[reste];
+            // 97, 98, 99
+            if (reste <= 19) return 'quatre-vingt-' + (reste === 17 ? 'dix-sept' : reste === 18 ? 'dix-huit' : 'dix-neuf');
+        } else if (unite === 1 && dizaine > 10) {
+            resultat = nombres[dizaine] + ' et un';
+        } else if (unite === 0) {
+            resultat = nombres[dizaine];
+        } else {
+            resultat = nombres[dizaine] + '-' + nombres[unite];
+        }
+        return resultat;
+    }
+
+    // Fonction pour convertir l'année (adaptée pour le format brut 2000+)
+    function convertirAnneeEnLettres(annee) {
+        if (annee < 2000) {
+            return annee.toString(); 
+        }
+        
+        if (annee >= 2000 && annee < 2100) {
+            const complement = annee % 100;
+            let anneeLettres = 'deux mille';
+            
+            if (complement > 0) {
+                anneeLettres += ' ' + nombreEnLettres(complement);
+            }
+            return anneeLettres;
+        }
+
+        return annee.toString(); 
+    }
+
+    // Fonction de conversion de l'heure : utilise la conversion littérale pour les minutes
+    function convertirHeureBrut(heureStr) {
+        let [heures, minutes] = heureStr.split('h').map(n => parseInt(n, 10));
+
+        if (isNaN(heures) || isNaN(minutes) || heures < 0 || heures > 23 || minutes < 0 || minutes > 59) {
+            return "Heure invalide.";
+        }
+
+        // Cas spéciaux
+        if (heures === 12 && minutes === 0) return "midi pile";
+        if (heures === 0 && minutes === 0) return "minuit pile";
+
+        // Heures en lettres
+        let heureLettres = nombreEnLettres(heures);
+        
+        // Minutes en lettres (la clé du changement)
+        let minuteLettres = nombreEnLettres(minutes);
+        
+        // Construction de la phrase
+        let heurePhrase = heureLettres + (heures > 1 ? ' heures' : ' heure');
+        
+        if (minutes > 0) {
+             // Ajoute les minutes en lettres, quel que soit le chiffre (15, 30, 45...)
+            heurePhrase += ' ' + minuteLettres;
+        }
+
+        // Correction pour 'une heure'
+        if (heures === 1) {
+             heurePhrase = heurePhrase.replace('un heure', 'une heure');
+        }
+        
+        return heurePhrase;
+    }
+
+
+    // Fonction principale de conversion de la date (inchangée)
+    function convertirDateBrut(dateStr) {
+        const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (!match) {
+            return "Format de date invalide (attendu JJ/MM/AAAA).";
+        }
+        
+        let jour = parseInt(match[1], 10);
+        let moisNum = parseInt(match[2], 10);
+        let annee = parseInt(match[3], 10);
+
+        if (jour < 1 || jour > 31 || moisNum < 1 || moisNum > 12) {
+             return "Jour ou mois invalide.";
+        }
+
+        const jourLettres = (jour === 1) ? 'premier' : nombreEnLettres(jour);
+        const nomMois = mois[moisNum - 1];
+        const anneeLettres = convertirAnneeEnLettres(annee);
+        
+        // Assemblage final : "Le <Jour en lettres> <Mois> <Année en lettres>"
+        const dateLettres = `Le ${jourLettres} ${nomMois} ${anneeLettres}`;
+        
+        return dateLettres;
+    }
+
+
+    // --- Gestionnaire d'événements ---
+
+    document.getElementById('conversionForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const dateInput = document.getElementById('dateInput').value.trim();
+        const timeInput = document.getElementById('timeInput').value.trim();
+        const resultText = document.getElementById('resultText');
+        const copyButton = document.getElementById('copyButton');
+
+        const dateEnLettres = convertirDateBrut(dateInput);
+        const heureEnLettres = convertirHeureBrut(timeInput);
+        
+        let resultat;
+
+        if (dateEnLettres.includes("invalide") || heureEnLettres.includes("invalide")) {
+            resultat = "Erreur de format. Veuillez vérifier la date (JJ/MM/AAAA) et l'heure (HHhMM).";
+            copyButton.style.display = 'none';
+        } else {
+            // Assemblage final : "Le <Date> à <Heure>"
+            resultat = `${dateEnLettres} à ${heureEnLettres}`;
+            
+            // Met la première lettre en majuscule
+            resultat = resultat.charAt(0).toUpperCase() + resultat.slice(1);
+            
+            copyButton.style.display = 'block';
+        }
+
+        resultText.textContent = resultat;
+    });
+
+    // Gestionnaire d'événements pour le bouton de copie
+    document.getElementById('copyButton').addEventListener('click', function() {
+        const textToCopy = document.getElementById('resultText').textContent;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            alert('Résultat copié dans le presse-papiers !');
+        }).catch(err => {
+            console.error('Erreur lors de la copie: ', err);
+            alert('Impossible de copier le texte (vérifiez les permissions du navigateur).');
+        });
+    });
+</script>
+
+</body>
+</html>
